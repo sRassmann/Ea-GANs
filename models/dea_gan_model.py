@@ -3,7 +3,8 @@ import torch
 import os
 from collections import OrderedDict
 from torch.autograd import Variable
-import util.util as util
+
+# import util.util as util
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks as networks
@@ -70,7 +71,7 @@ class dea_ganModel(BaseModel):
             self.fake_AB_pool = ImagePool(opt.pool_size)
             self.old_lr = opt.lr
             # define loss functions
-            if self.opt.labelSmooth:
+            if not self.opt.nolabelSmooth:
                 self.criterionGAN = networks.GANLoss_smooth(
                     use_lsgan=not opt.no_lsgan, tensor=self.Tensor
                 )
@@ -96,12 +97,12 @@ class dea_ganModel(BaseModel):
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == "AtoB"
-        input_A = input["A" if AtoB else "B"]
-        input_B = input["B" if AtoB else "A"]
+        input_A = torch.cat([input["t1"], input["t2"]], dim=1)
+        input_B = input["flair"]
 
         self.input_A.resize_(input_A.size()).copy_(input_A)
         self.input_B.resize_(input_B.size()).copy_(input_B)
-        self.image_paths = input["A_paths" if AtoB else "B_paths"]
+        # self.image_paths = input["A_paths" if AtoB else "B_paths"]
 
     def forward(self):
         self.real_A = Variable(self.input_A)

@@ -5,12 +5,6 @@ class TrainOptions(BaseOptions):
     def initialize(self):
         BaseOptions.initialize(self)
         self.parser.add_argument(
-            "--display_freq",
-            type=int,
-            default=100,
-            help="frequency of showing training results on screen",
-        )
-        self.parser.add_argument(
             "--print_freq",
             type=int,
             default=100,
@@ -48,7 +42,7 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument(
             "--niter_decay",
             type=int,
-            default=100,
+            default=50,
             help="# of iter to linearly decay learning rate to zero",
         )
         self.parser.add_argument(
@@ -65,15 +59,16 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument(
             "--lambda_A",
             type=float,
-            default=10.0,
+            default=300,
             help="weight for cycle loss (A -> B -> A)",
         )
-        self.parser.add_argument(
-            "--lambda_B",
-            type=float,
-            default=10.0,
-            help="weight for cycle loss (B -> A -> B)",
-        )
+        # No effect? no idea why it is here
+        # self.parser.add_argument(
+        #     "--lambda_B",
+        #     type=float,
+        #     default=10.0,
+        #     help="weight for cycle loss (B -> A -> B)",
+        # )
         self.parser.add_argument(
             "--pool_size",
             type=int,

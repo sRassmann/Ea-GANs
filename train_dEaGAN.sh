@@ -1,1 +1,2 @@
-python train.py --dataroot ./datasets/example_data --name example_dEaGAN --model dea_gan --which_model_netG unet_128 --which_direction AtoB --lambda_A 300 --dataset_mode aligned --use_dropout --batchSize 6 --niter 100 --niter_decay 50 --lambda_sobel 100 --labelSmooth --rise_sobelLoss
+# singularity container build based on flairsyn/Dockerfile
+singularity exec --nv -B $HPCWORK "/home/$USER/$USER"_dif.sif python train.py --name example_dEaGAN --use_dropout --rise_sobelLoss --batchSize 6

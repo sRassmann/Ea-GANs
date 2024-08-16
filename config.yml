@@ -1,0 +1,14 @@
+# Configuration for data loading and training
+data:
+  dataset: "../data/RS/RS_train_split.json"
+  data_dir: "../data/RS/conformed_mask_reg"
+  img_size: null
+  cache: "processes"
+  num_workers: 12
+  target_sequence: "flair"
+  guidance_sequences:
+    - "t1"
+    - "t2"
+  subset_train: 1000000
+  subset_val: 1000000
+  skull_strip: 1.0

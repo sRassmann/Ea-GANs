@@ -1,6 +1,5 @@
 import argparse
 import os
-from util import util
 
 
 class BaseOptions:
@@ -9,11 +8,6 @@ class BaseOptions:
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument(
-            "--dataroot",
-            required=True,
-            help="path to images (should have subfolders trainA, trainB, valA, valB, etc)",
-        )
         self.parser.add_argument(
             "--batchSize", type=int, default=6, help="input batch size"
         )
@@ -24,7 +18,7 @@ class BaseOptions:
             "--fineSize", type=int, default=128, help="then crop to this size"
         )
         self.parser.add_argument(
-            "--input_nc", type=int, default=1, help="# of input image channels"
+            "--input_nc", type=int, default=2, help="# of input image channels"
         )
         self.parser.add_argument(
             "--output_nc", type=int, default=1, help="# of output image channels"
@@ -74,7 +68,7 @@ class BaseOptions:
         self.parser.add_argument(
             "--model",
             type=str,
-            default="pix2pix",
+            default="dea_gan",
             help="chooses which model to use. pix2pix, test",
         )
         self.parser.add_argument(
@@ -86,7 +80,7 @@ class BaseOptions:
         self.parser.add_argument(
             "--checkpoints_dir",
             type=str,
-            default="./checkpoints",
+            default="./output",
             help="models are saved here",
         )
         self.parser.add_argument(
@@ -99,12 +93,6 @@ class BaseOptions:
             "--serial_batches",
             action="store_true",
             help="if true, takes images in order to make batches, otherwise takes them randomly",
-        )
-        self.parser.add_argument(
-            "--display_winsize", type=int, default=64, help="display window size"
-        )
-        self.parser.add_argument(
-            "--display_id", type=int, default=2, help="window id of the web display"
         )
         self.parser.add_argument(
             "--identity",
@@ -141,7 +129,9 @@ class BaseOptions:
             help="indicate to rise sobel lambda",
         )
         self.parser.add_argument(
-            "--labelSmooth", action="store_true", help="indicate to use label smoothing"
+            "--nolabelSmooth",
+            action="store_true",
+            help="indicate not to use label smoothing",
         )
         self.initialized = True
 
@@ -167,7 +157,7 @@ class BaseOptions:
 
         # save to the disk
         expr_dir = os.path.join(self.opt.checkpoints_dir, self.opt.name)
-        util.mkdirs(expr_dir)
+        os.makedirs(expr_dir, exist_ok=True)
         file_name = os.path.join(expr_dir, "opt.txt")
         with open(file_name, "wt") as opt_file:
             opt_file.write("------------ Options -------------\n")
