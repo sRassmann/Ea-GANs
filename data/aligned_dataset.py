@@ -10,10 +10,7 @@ import SimpleITK as sitk
 import numpy as np
 
 
-
-
-
-class AlignedDataset(BaseDataset):   ## train
+class AlignedDataset(BaseDataset):  ## train
     def initialize(self, opt):
         self.opt = opt
         self.root = opt.dataroot
@@ -21,29 +18,26 @@ class AlignedDataset(BaseDataset):   ## train
 
         self.AB_paths = sorted(make_dataset(self.dir_AB))
 
-        assert(opt.resize_or_crop == 'resize_and_crop')
-
-
+        assert opt.resize_or_crop == "resize_and_crop"
 
         self.transform = torch.from_numpy
-        self.eps = 10**(-12)
+        self.eps = 10 ** (-12)
 
     def __getitem__(self, index):
-
         AB_path = self.AB_paths[index]
-        img0 = io.imread(AB_path, plugin = 'simpleitk')
+        img0 = io.imread(AB_path, plugin="simpleitk")
 
+        AB = np.zeros((1, self.opt.fineSize * 2, self.opt.fineSize, self.opt.fineSize))
+        AB[0, 0 : self.opt.fineSize, :, :] = img0[0 : self.opt.fineSize, :, :]
 
-
-        AB = np.zeros((1,self.opt.fineSize*2,self.opt.fineSize,self.opt.fineSize))
-        AB[0,0:self.opt.fineSize,:,:] = img0[0:self.opt.fineSize,:,:]
-
-        AB[0,self.opt.fineSize:self.opt.fineSize*2,:,:] = img0[self.opt.fineSize:(self.opt.fineSize*2),:,:]
+        AB[0, self.opt.fineSize : self.opt.fineSize * 2, :, :] = img0[
+            self.opt.fineSize : (self.opt.fineSize * 2), :, :
+        ]
 
         AB = self.transform(AB)
 
-        A = AB[:,:self.opt.fineSize,:,:]
-        B = AB[:,self.opt.fineSize:self.opt.fineSize*2,:,:]
+        A = AB[:, : self.opt.fineSize, :, :]
+        B = AB[:, self.opt.fineSize : self.opt.fineSize * 2, :, :]
 
         if (not self.opt.no_flip) and random.random() < 0.5:
             idx = [i for i in range(A.size(3) - 1, -1, -1)]
@@ -51,21 +45,16 @@ class AlignedDataset(BaseDataset):   ## train
             A = A.index_select(3, idx)
             B = B.index_select(3, idx)
 
-
-        return {'A': A, 'B': B,
-            'A_paths': AB_path, 'B_paths': AB_path}
+        return {"A": A, "B": B, "A_paths": AB_path, "B_paths": AB_path}
 
     def __len__(self):
         return len(self.AB_paths)
 
     def name(self):
-        return 'AlignedDataset'
+        return "AlignedDataset"
 
 
-
-
-
-class TestAlignedDataset(BaseDataset):   
+class TestAlignedDataset(BaseDataset):
     def initialize(self, opt):
         self.opt = opt
         self.root = opt.dataroot
@@ -73,31 +62,27 @@ class TestAlignedDataset(BaseDataset):
 
         self.AB_paths = sorted(make_dataset(self.dir_AB))
 
-        assert(opt.resize_or_crop == 'resize_and_crop')
-
-
+        assert opt.resize_or_crop == "resize_and_crop"
 
         self.transform = torch.from_numpy
 
     def __getitem__(self, index):
-
         AB_path = self.AB_paths[index]
-        img0 = io.imread(AB_path, plugin = 'simpleitk')
-        img0 = img0.reshape((2*self.opt.fineSize,self.opt.fineSize,self.opt.fineSize))
-        AB = np.zeros((1,self.opt.fineSize*2,self.opt.fineSize,self.opt.fineSize))
-        AB[0,0:self.opt.fineSize,:,:] = img0[0:self.opt.fineSize,:,:]
+        img0 = io.imread(AB_path, plugin="simpleitk")
+        img0 = img0.reshape(
+            (2 * self.opt.fineSize, self.opt.fineSize, self.opt.fineSize)
+        )
+        AB = np.zeros((1, self.opt.fineSize * 2, self.opt.fineSize, self.opt.fineSize))
+        AB[0, 0 : self.opt.fineSize, :, :] = img0[0 : self.opt.fineSize, :, :]
 
-        AB[0,self.opt.fineSize:self.opt.fineSize*2,:,:] = img0[self.opt.fineSize:(self.opt.fineSize*2),:,:]
-
+        AB[0, self.opt.fineSize : self.opt.fineSize * 2, :, :] = img0[
+            self.opt.fineSize : (self.opt.fineSize * 2), :, :
+        ]
 
         AB = self.transform(AB)
 
-
-
-        A = AB[:,:self.opt.fineSize,:,:]
-        B = AB[:,self.opt.fineSize:self.opt.fineSize*2,:,:]
-
-
+        A = AB[:, : self.opt.fineSize, :, :]
+        B = AB[:, self.opt.fineSize : self.opt.fineSize * 2, :, :]
 
         if (not self.opt.no_flip) and random.random() < 0.5:
             idx = [i for i in range(A.size(3) - 1, -1, -1)]
@@ -105,12 +90,10 @@ class TestAlignedDataset(BaseDataset):
             A = A.index_select(3, idx)
             B = B.index_select(3, idx)
 
-
-        return {'A': A, 'B': B,
-                'A_paths': AB_path, 'B_paths': AB_path}
+        return {"A": A, "B": B, "A_paths": AB_path, "B_paths": AB_path}
 
     def __len__(self):
         return len(self.AB_paths)
 
     def name(self):
-        return 'AlignedDataset'
+        return "AlignedDataset"

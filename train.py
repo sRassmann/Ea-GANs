@@ -4,11 +4,12 @@ from data.data_loader import CreateDataLoader
 from models.models import create_model
 from util.visualizer import Visualizer
 
+
 opt = TrainOptions().parse()
 data_loader = CreateDataLoader(opt)
 dataset = data_loader.load_data()
 dataset_size = len(data_loader)
-print('#training images = %d' % dataset_size)
+print("#training images = %d" % dataset_size)
 
 model = create_model(opt)
 visualizer = Visualizer(opt)
@@ -21,7 +22,7 @@ for epoch in range(1, opt.niter + opt.niter_decay + 1):
         iter_start_time = time.time()
         total_steps += opt.batchSize
         epoch_iter = total_steps - dataset_size * (epoch - 1)
-        model.set_input(data)  
+        model.set_input(data)
         model.optimize_parameters()
 
         if total_steps % opt.display_freq == 0:
@@ -35,18 +36,23 @@ for epoch in range(1, opt.niter + opt.niter_decay + 1):
             #     visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
 
         if total_steps % opt.save_latest_freq == 0:
-            print('saving the latest model (epoch %d, total_steps %d)' %
-                  (epoch, total_steps))
-            model.save('latest')
+            print(
+                "saving the latest model (epoch %d, total_steps %d)"
+                % (epoch, total_steps)
+            )
+            model.save("latest")
 
     if epoch % opt.save_epoch_freq == 0:
-        print('saving the model at the end of epoch %d, iters %d' %
-              (epoch, total_steps))
-        model.save('latest')
+        print(
+            "saving the model at the end of epoch %d, iters %d" % (epoch, total_steps)
+        )
+        model.save("latest")
         model.save(epoch)
 
-    print('End of epoch %d / %d \t Time Taken: %d sec' %
-          (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
+    print(
+        "End of epoch %d / %d \t Time Taken: %d sec"
+        % (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time)
+    )
 
     if opt.rise_sobelLoss and epoch <= 20:
         model.update_sobel_lambda(epoch)

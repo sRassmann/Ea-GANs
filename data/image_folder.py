@@ -16,8 +16,20 @@ import numpy as np
 
 
 IMG_EXTENSIONS = [
-    '.jpg', '.JPG', '.jpeg', '.JPEG','.nii','NII','.nii.gz','NII.gz',
-    '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
+    ".jpg",
+    ".JPG",
+    ".jpeg",
+    ".JPEG",
+    ".nii",
+    "NII",
+    ".nii.gz",
+    "NII.gz",
+    ".png",
+    ".PNG",
+    ".ppm",
+    ".PPM",
+    ".bmp",
+    ".BMP",
 ]
 
 
@@ -27,7 +39,7 @@ def is_image_file(filename):
 
 def make_dataset(dir):
     images = []
-    assert os.path.isdir(dir), '%s is not a valid directory' % dir
+    assert os.path.isdir(dir), "%s is not a valid directory" % dir
 
     for root, _, fnames in sorted(os.walk(dir)):
         for fname in fnames:
