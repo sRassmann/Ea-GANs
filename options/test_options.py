@@ -26,9 +26,22 @@ class TestOptions(BaseOptions):
             help="which epoch to load? set to latest to use latest cached model",
         )
         self.parser.add_argument(
-            "--how_many",
-            type=int,
-            default=float("inf"),
-            help="how many test images to run",
+            "--dataset_json",
+            type=str,
+            default="../data/RS/RS_train_split.json",
+            help="path to the dataset json file",
+        )
+        self.parser.add_argument(
+            "--data_dir",
+            type=str,
+            default="../data/RS/conformed_mask_reg",
+            help="path to the dataset directory",
+        )
+        self.parser.add_argument(
+            "-o",
+            "--out_dir_name",
+            type=str,
+            default="inference",
+            help="output directory name for the test images",
         )
         self.isTrain = False

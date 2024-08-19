@@ -1,2 +1,0 @@
-# singularity container build based on flairsyn/Dockerfile
-singularity exec --nv -B $HPCWORK "/home/$USER/$USER"_dif.sif python train.py --name example_dEaGAN --use_dropout --rise_sobelLoss --batchSize 6
