@@ -12,6 +12,8 @@ from flairsyn.lib.inference import save_output_volume
 from monai.transforms import CropForegroundd
 from flairsyn.lib.datasets import get_datasets
 
+operating_size = (176, 220, 220)  # change on data with higher resolution on any axis
+
 
 def main(opt):
     output_dir = os.path.join(opt.checkpoints_dir, opt.name, opt.out_dir_name)
@@ -22,7 +24,7 @@ def main(opt):
         dataset=opt.dataset_json,
         data_dir=opt.data_dir,
         relevant_sequences=["flair", "t1", "t2"],
-        size=(240, 240, 176),  # fix size, crop afterward
+        size=None,  # pad to 240, 240, 176 to do processing, re-crop afterwards
         cache=None,
         subset_train=0,
         normalize_to=(-1, 1),
@@ -32,35 +34,51 @@ def main(opt):
     model = create_model(opt)
     model.netG.eval().cuda()
 
-    crop_t = CropForegroundd(
-        keys=["t1", "t2", "flair", "pred", "mask"],
-        source_key="mask",
-        allow_smaller=True,
-        margin=(5, 10, 20),  # as D H W
-        allow_missing=True,
-    )
+    # crop_t = CropForegroundd(
+    #     keys=["t1", "t2", "flair", "pred", "mask"],
+    #     source_key="mask",
+    #     allow_smaller=True,
+    #     margin=(5, 10, 20),  # as D H W
+    #     allow_missing=True,
+    # )
 
     progress_bar = tqdm(enumerate(val), total=len(val))
     with torch.no_grad():
         for i, data in progress_bar:
             input = torch.cat([data["t1"], data["t2"]], dim=0)
+
+            # pad to (240, 240, 176)
+            pad = -torch.ones([2, *operating_size])
+            offset_d = (operating_size[0] - input.shape[1]) // 2
+            offset_h = (operating_size[1] - input.shape[2]) // 2
+            offset_w = (operating_size[2] - input.shape[3]) // 2
+            assert offset_d >= 0
+            assert offset_h >= 0
+            assert offset_w >= 0
+            pad[
+                :,
+                offset_d : offset_d + input.shape[1],
+                offset_h : offset_h + input.shape[2],
+                offset_w : offset_w + input.shape[3],
+            ] = input
+
             # divide image into 8 blocks with 128 x 128 x 128
             batch = [
-                input[:, 0:128, 0:128, 0:128],
-                input[:, 0:128, 0:128, -128:],
-                input[:, 0:128, -128:, 0:128],
-                input[:, 0:128, -128:, -128:],
-                input[:, -128:, 0:128, 0:128],
-                input[:, -128:, 0:128, -128:],
-                input[:, -128:, -128:, 0:128],
-                input[:, -128:, -128:, -128:],
+                pad[:, 0:128, 0:128, 0:128],
+                pad[:, 0:128, 0:128, -128:],
+                pad[:, 0:128, -128:, 0:128],
+                pad[:, 0:128, -128:, -128:],
+                pad[:, -128:, 0:128, 0:128],
+                pad[:, -128:, 0:128, -128:],
+                pad[:, -128:, -128:, 0:128],
+                pad[:, -128:, -128:, -128:],
             ]
             output = model.netG(torch.stack(batch, dim=0).float().cuda())
 
             # output = (output + 1).cpu().squeeze(dim=1) / 2
             output = output.cpu().squeeze(dim=1)
-            res = torch.zeros(data["t1"].shape[1:])
-            weights = torch.zeros(data["t1"].shape[1:])
+            res = torch.zeros(operating_size)
+            weights = torch.zeros(operating_size)
 
             res[0:128, 0:128, 0:128] += output[0]
             weights[0:128, 0:128, 0:128] += 1
@@ -80,8 +98,15 @@ def main(opt):
             weights[-128:, -128:, -128:] += 1
             res /= weights
 
+            # crop to original size
+            res = res[
+                offset_d : offset_d + data["t1"].shape[1],
+                offset_h : offset_h + data["t1"].shape[2],
+                offset_w : offset_w + data["t1"].shape[3],
+            ]
+
             data["pred"] = res.unsqueeze(0)
-            data = crop_t(data)
+            # data = crop_t(data)
 
             save_output_volume(
                 data,
