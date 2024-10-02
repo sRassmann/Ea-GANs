@@ -21,7 +21,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 def main(opt):
     torch.multiprocessing.set_sharing_strategy("file_system")
-    config = OmegaConf.load("config.yml")
+    config = OmegaConf.load(opt.config)
     data_loader, _ = create_loaders(
         batch_size=opt.batchSize, roi_size=opt.fineSize, **config.data
     )
