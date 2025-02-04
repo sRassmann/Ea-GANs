@@ -133,6 +133,11 @@ class BaseOptions:
             action="store_true",
             help="indicate not to use label smoothing",
         )
+        self.parser.add_argument(
+            "--config",
+            type=str,
+            default="config.yml",
+        )
         self.initialized = True
 
     def parse(self):

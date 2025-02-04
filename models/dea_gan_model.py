@@ -8,6 +8,7 @@ from torch.autograd import Variable
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks as networks
+from omegaconf import OmegaConf
 
 
 class dea_ganModel(BaseModel):
@@ -19,6 +20,11 @@ class dea_ganModel(BaseModel):
         self.isTrain = opt.isTrain
         self.batchSize = opt.batchSize
         self.fineSize = opt.fineSize
+
+        # read omegaconf
+        config = OmegaConf.load(opt.config)
+        self.guidance_sequences = config.data.guidance_sequences
+        self.target_sequence = config.data.target_sequence
 
         # define tensors
         self.input_A = self.Tensor(
@@ -97,8 +103,8 @@ class dea_ganModel(BaseModel):
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == "AtoB"
-        input_A = torch.cat([input["t1"], input["t2"]], dim=1)
-        input_B = input["flair"]
+        input_A = torch.cat([input[seq] for seq in self.guidance_sequences], dim=1)
+        input_B = input[self.target_sequence]
 
         self.input_A.resize_(input_A.size()).copy_(input_A)
         self.input_B.resize_(input_B.size()).copy_(input_B)

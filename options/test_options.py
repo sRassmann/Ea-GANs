@@ -26,6 +26,16 @@ class TestOptions(BaseOptions):
             help="which epoch to load? set to latest to use latest cached model",
         )
         self.parser.add_argument(
+            "--no_skull_strip",
+            action="store_true",
+        )
+        self.parser.add_argument(
+            "--operating_size",
+            nargs=3,
+            type=int,
+            default=[176, 220, 220],
+        )
+        self.parser.add_argument(
             "--dataset_json",
             type=str,
             default="../data/RS/RS_train_split.json",

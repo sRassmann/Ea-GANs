@@ -1,0 +1,14 @@
+# Configuration for data loading and training
+data:
+  dataset: "../data/test_datasets/ixi_train.json"
+  data_dir: "../data/test_datasets/ixi"
+  img_size: null
+  cache: "processes"
+  num_workers: 12
+  target_sequence: "t2"
+  guidance_sequences:
+    - "t1"
+    - "pd"
+  subset_train: 1000000
+  subset_val: 1000000
+  skull_strip: 0

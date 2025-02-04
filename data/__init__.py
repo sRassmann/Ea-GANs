@@ -34,11 +34,16 @@ def create_loaders(
 
     augs = (
         [
+            transforms.SpatialPadd(
+                keys=relevant_sequences + ["mask", "brain_mask"],
+                spatial_size=(128, -1, -1),
+                allow_missing_keys=True,
+            ),
             transforms.RandSpatialCropD(
                 keys=relevant_sequences + ["mask", "brain_mask"],
                 roi_size=roi_size,
                 random_center=True,
-            )
+            ),
         ]
         if is_train
         else []

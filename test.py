@@ -1,5 +1,3 @@
-import monai.data.meta_tensor
-import time
 import os, sys
 from options.test_options import TestOptions
 from models.models import create_model
@@ -11,24 +9,31 @@ from flairsyn.lib.utils.visualization import vol_view
 from flairsyn.lib.inference import save_output_volume
 from monai.transforms import CropForegroundd
 from flairsyn.lib.datasets import get_datasets
-
-operating_size = (176, 220, 220)  # change on data with higher resolution on any axis
+import numpy as np
+import nibabel as nib
+import matplotlib.pyplot as plt
 
 
 def main(opt):
     output_dir = os.path.join(opt.checkpoints_dir, opt.name, opt.out_dir_name)
     os.makedirs(output_dir, exist_ok=True)
     print(f"Saving predictions to: {output_dir}")
+    config = OmegaConf.load(opt.config)
+    relevant_sequences = [config.data.target_sequence] + [
+        *config.data.guidance_sequences
+    ]
+    operating_size = opt.operating_size
+    print(f"Operating size: {operating_size}")
 
     _, val = get_datasets(
         dataset=opt.dataset_json,
         data_dir=opt.data_dir,
-        relevant_sequences=["flair", "t1", "t2"],
-        size=None,  # pad to 240, 240, 176 to do processing, re-crop afterwards
+        relevant_sequences=relevant_sequences,
+        size=None,
         cache=None,
         subset_train=0,
         normalize_to=(-1, 1),
-        skull_strip=1,
+        skull_strip=config.data.skull_strip and not opt.no_skull_strip,
     )
 
     model = create_model(opt)
@@ -45,16 +50,20 @@ def main(opt):
     progress_bar = tqdm(enumerate(val), total=len(val))
     with torch.no_grad():
         for i, data in progress_bar:
-            input = torch.cat([data["t1"], data["t2"]], dim=0)
+            input = torch.cat(
+                [data[seq] for seq in config.data.guidance_sequences], dim=0
+            )
 
-            # pad to (240, 240, 176)
-            pad = -torch.ones([2, *operating_size])
+            # print(f"Processing {data['subject_ID']}, input shape: {input.shape}")
+
+            # pad to operating size
+            pad = -torch.ones([3, *operating_size])
             offset_d = (operating_size[0] - input.shape[1]) // 2
             offset_h = (operating_size[1] - input.shape[2]) // 2
             offset_w = (operating_size[2] - input.shape[3]) // 2
-            assert offset_d >= 0
-            assert offset_h >= 0
-            assert offset_w >= 0
+            assert offset_d >= 0, f"input too large: {input.shape}, {operating_size}"
+            assert offset_h >= 0, f"input too large: {input.shape}, {operating_size}"
+            assert offset_w >= 0, f"input too large: {input.shape}, {operating_size}"
             pad[
                 :,
                 offset_d : offset_d + input.shape[1],
@@ -111,8 +120,8 @@ def main(opt):
             save_output_volume(
                 data,
                 output_path=output_dir,
-                save_keys=["t1", "t2", "flair", "pred", "mask"],
-                target_sequence="flair",
+                save_keys=relevant_sequences + ["pred", "mask"],
+                target_sequence=config.data.target_sequence,
             )
 
 
