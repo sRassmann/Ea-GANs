@@ -401,10 +401,13 @@ class UnetSkipConnectionBlock(nn.Module):
 
         if outermost:
             upconv = nn.ConvTranspose3d(
-                inner_nc * 2, outer_nc, kernel_size=4, stride=2, padding=1
+                inner_nc * 2, inner_nc, kernel_size=4, stride=2, padding=1
+            )
+            conv = nn.Conv3d(
+                inner_nc, outer_nc, kernel_size=5, padding=2
             )
             down = [downconv]
-            up = [uprelu, upconv, nn.Tanh()]
+            up = [uprelu, upconv, upnorm, uprelu, conv, nn.Tanh()]
             model = down + [submodule] + up
         elif innermost:
             upconv = nn.ConvTranspose3d(
