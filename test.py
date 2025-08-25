@@ -57,7 +57,7 @@ def main(opt):
             # print(f"Processing {data['subject_ID']}, input shape: {input.shape}")
 
             # pad to operating size
-            pad = -torch.ones([3, *operating_size])
+            pad = -torch.ones(input.shape[0], *operating_size)
             offset_d = (operating_size[0] - input.shape[1]) // 2
             offset_h = (operating_size[1] - input.shape[2]) // 2
             offset_w = (operating_size[2] - input.shape[3]) // 2
