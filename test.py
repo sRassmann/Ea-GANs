@@ -82,7 +82,8 @@ def main(opt):
                 pad[:, -128:, -128:, 0:128],
                 pad[:, -128:, -128:, -128:],
             ]
-            output = model.netG(torch.stack(batch, dim=0).float().cuda())
+            guid = torch.stack(batch, dim=0).float().cuda()
+            output = model.netG(guid)
 
             # output = (output + 1).cpu().squeeze(dim=1) / 2
             output = output.cpu().squeeze(dim=1)
