@@ -31,6 +31,7 @@ class gea_ganModel(BaseModel):
             self.sobelLambda = 0
         else:
             self.sobelLambda = self.opt.lambda_sobel
+        self.lambda_gan = opt.lambda_gan
 
         # load/define networks
 
@@ -144,8 +145,12 @@ class gea_ganModel(BaseModel):
         # First, G(A) should fake the discriminator
 
         fake_AB = torch.cat((self.real_A, self.fake_B), 1)
-        pred_fake = self.netD.forward(fake_AB)
-        self.loss_G_GAN = self.criterionGAN(pred_fake, True)
+        if self.lambda_gan > 0:
+            pred_fake = self.netD.forward(fake_AB)
+            self.loss_G_GAN = self.criterionGAN(pred_fake, True)
+        else:
+            self.loss_G_GAN = 0
+        self.loss_G_GAN *= self.lambda_gan
 
         # Second, G(A) = B
 
@@ -163,9 +168,10 @@ class gea_ganModel(BaseModel):
     def optimize_parameters(self):
         self.forward()
 
-        self.optimizer_D.zero_grad()
-        self.backward_D()
-        self.optimizer_D.step()
+        if self.lambda_gan > 0:
+            self.optimizer_D.zero_grad()
+            self.backward_D()
+            self.optimizer_D.step()
 
         self.optimizer_G.zero_grad()
         self.backward_G()

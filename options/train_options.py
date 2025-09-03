@@ -80,4 +80,7 @@ class TrainOptions(BaseOptions):
             action="store_true",
             help="do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/",
         )
+        self.parser.add_argument(
+            "--lambda_gan", type=float, default=1.0, help="weight for GAN loss"
+        )
         self.isTrain = True
